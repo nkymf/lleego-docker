@@ -1,0 +1,46 @@
+version: '2'
+services:
+  development-back:
+    build:
+      context: ./development-back
+      dockerfile: Dockerfile
+    image: development-back
+    container_name: development-back
+    environment:
+      SERVICE_NAME: app
+      SERVICE_TAGS: dev
+    working_dir: /var/www
+    volumes:
+      # RECONFIGURE YOUR DIR LOCATION OF THE LLEEGO PROJECT.
+      - /var/www/lleego:/var/www
+      - ./php/local.ini:/usr/local/etc/php/conf.d/php.ini
+      - ./logs:/usr/local/var/log/
+    networks:
+      - app-network
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    image: nginx
+    container_name: nginx
+    ports:
+      - "80:80"
+      
+    volumes:
+      # RECONFIGURE YOUR DIR LOCATION OF THE LLEEGO PROJECT.
+      - /var/www/lleego:/var/www
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/site.conf:/etc/nginx/conf.d/default.conf
+
+    networks:
+      - app-network
+    depends_on:
+      - development-back
+
+networks:
+  app-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.27.0.0/16
